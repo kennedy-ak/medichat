@@ -39,7 +39,10 @@ prompt = ChatPromptTemplate.from_messages([
 ])
 
 # Create retrieval chain
-question_answer_chain = create_stuff_documents_chain(None, prompt)  # We won't need LLM here for Groq
+# question_answer_chain = create_stuff_documents_chain(None, prompt)  # We won't need LLM here for Groq
+from langchain_core.runnables import RunnablePassthrough
+
+question_answer_chain = RunnablePassthrough.assign(context=lambda x: x["context"])
 rag_chain = create_retrieval_chain(retriever, question_answer_chain)
 
 # Streamlit UI
