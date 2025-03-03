@@ -411,7 +411,7 @@ reference_materials = {
     "medical_textbook": {
         "link": "https://huggingface.co/datasets/kenny-ak1/medical_book",
         "display_name": "Medical Reference",
-        "description": "Comprehensive medical reference covering general medicine topics."
+        "description": "medical reference covering general medicine topics."
     }
 }
 
