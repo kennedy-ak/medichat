@@ -2,8 +2,6 @@ import streamlit as st
 import os
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_pinecone import PineconeVectorStore
-from langchain.chains import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
 from groq import Groq
 
@@ -26,20 +24,12 @@ retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k":
 # Set up the Groq client
 groq_client = Groq(api_key="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")
 
-# Define prompt
+# Define prompt template for medical assistant
 system_prompt = (
     "You are a medical assistant. Answer ONLY using retrieved context. "
     "If no relevant information is found, say 'I don't know'. "
-    "Use 2 sentences each. Provide a page number when applicable.\n\n{context}"
+    "Use 2 sentences each. Provide a page number when applicable."
 )
-prompt = ChatPromptTemplate.from_messages([
-    ("system", system_prompt),
-    ("human", "{input}"),
-])
-
-# Create retrieval chain
-question_answer_chain = create_stuff_documents_chain(None, prompt)  # We won't need LLM here for Groq
-rag_chain = create_retrieval_chain(retriever, question_answer_chain)
 
 # Streamlit UI
 st.title("MediChat - AI Medical Assistant")
@@ -63,40 +53,33 @@ if user_input:
     with st.chat_message("user"):
         st.markdown(user_input)
     
-    # Retrieve relevant documents and handle different document structures
+    # Retrieve relevant documents directly using the retriever
     try:
-        results = rag_chain.invoke({"input": user_input})
+        retrieved_docs = retriever.get_relevant_documents(user_input)
         
-        # Debug the structure if needed
-        # with st.expander("Debug Results"):
-        #     st.write(results)
-        
-        # Handle different document structures
-        if "documents" in results and results["documents"]:
-            if isinstance(results["documents"][0], str):
-                context = "\n".join(results["documents"])
-            else:
-                # Assuming Document objects with page_content attribute
-                context = "\n".join([doc.page_content for doc in results["documents"]])
+        # Extract content from documents
+        if retrieved_docs:
+            context = "\n".join([doc.page_content for doc in retrieved_docs])
         else:
             context = "No relevant documents found."
+            
     except Exception as e:
         st.error(f"Error retrieving context: {e}")
         context = "Error retrieving context."
     
     # Build prompt with retrieved context
-    prompt_with_context = system_prompt.format(context=context) + f"\nUser: {user_input}"
+    full_prompt = f"{system_prompt}\n\nRetrieved Information:\n{context}\n\nUser Question: {user_input}"
     
     # Use Groq for the assistant's response
     response = groq_client.chat.completions.create(
         messages=[
-            {"role": "system", "content": "You are a helpful assistant answering questions about documents."},
-            {"role": "user", "content": prompt_with_context}
+            {"role": "system", "content": "You are a helpful medical assistant."},
+            {"role": "user", "content": full_prompt}
         ],
-        model="gemma2-9b-it",  # Adjust to the appropriate model you're using
+        model="gemma2-9b-it",
         max_tokens=150
     )
-    ai_response = response.choices[0].message.content  # Extract the response text
+    ai_response = response.choices[0].message.content
     
     # Display AI response
     st.session_state.chat_history.append({"role": "assistant", "content": ai_response})
