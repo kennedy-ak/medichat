@@ -27,8 +27,16 @@ groq_client = Groq(api_key="gsk_K9qHrnFpXQxvo65585ZsWGdyb3FY7g8jjxYGYwJZOTyhI7nv
 system_prompt = (
     "You are a medical assistant. Answer ONLY using retrieved context. "
     "If no relevant information is found, say 'I don't know'. "
-    "Use 2 sentences each. Provide the source page number when applicable using format (Page X). "
-    "Always include the source page number for each piece of information you use."
+    "Use 5 sentences each for general answers. "
+    "For lists, processes, or step-by-step instructions: "
+    "1. Clearly number each step or item "
+    "2. Keep each point concise and focused on one action or piece of information "
+    "3. Maintain the exact order as presented in the source material "
+    "4. Include all relevant steps or items from the source material "
+    "Provide the source page number when applicable using format (Page X). "
+    "Always include the source page number for each piece of information you use. "
+    "If multiple pages contain relevant information, cite each source clearly: (Page X), (Page Y). "
+    "If information comes from different sections, organize your answer by topic and include all relevant page references."
 )
 
 # Streamlit UI
