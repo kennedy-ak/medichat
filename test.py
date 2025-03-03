@@ -222,7 +222,7 @@ system_info = {
         "Not a substitute for professional medical advice",
         "Limited to information in the reference materials",
         "No diagnostic capabilities",
-        "Cannot prescribe medications or treatments"
+        "Cannot prescribe medications "
     ],
     "data_sources": "Trained on trusted medical textbooks and reference materials that are available for download in the sidebar.",
     "technology": "Powered by Retrieval-Augmented Generation (RAG) using Pinecone vector database and Groq's AI model."
