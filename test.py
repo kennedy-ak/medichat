@@ -2,7 +2,6 @@ import streamlit as st
 import os
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_pinecone import PineconeVectorStore
-from langchain_core.prompts import ChatPromptTemplate
 from groq import Groq
 
 # Set API keys (use environment variables in production)
@@ -28,7 +27,8 @@ groq_client = Groq(api_key="gsk_K9qHrnFpXQxvo65585ZsWGdyb3FY7g8jjxYGYwJZOTyhI7nv
 system_prompt = (
     "You are a medical assistant. Answer ONLY using retrieved context. "
     "If no relevant information is found, say 'I don't know'. "
-    "Use 2 sentences each. Provide a page number when applicable."
+    "Use 2 sentences each. Provide the source page number when applicable using format (Page X). "
+    "Always include the source page number for each piece of information you use."
 )
 
 # Streamlit UI
@@ -39,10 +39,23 @@ st.write("Ask me any medical question!")
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
+# Initialize a session state for showing sources
+if "show_sources" not in st.session_state:
+    st.session_state.show_sources = False
+
 # Display chat history
 for message in st.session_state.chat_history:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
+        # Display sources if they exist and are meant to be shown
+        if message.get("sources") and st.session_state.show_sources:
+            with st.expander("Sources"):
+                for i, source in enumerate(message["sources"]):
+                    st.markdown(f"**Source {i+1}:**\n{source}")
+
+# Add a toggle for showing sources
+st.sidebar.title("Settings")
+st.session_state.show_sources = st.sidebar.checkbox("Show Sources", value=st.session_state.show_sources)
 
 # User input
 user_input = st.chat_input("Type your question...")
@@ -57,15 +70,35 @@ if user_input:
     try:
         retrieved_docs = retriever.get_relevant_documents(user_input)
         
-        # Extract content from documents
+        # Extract content from documents and format with page numbers
         if retrieved_docs:
-            context = "\n".join([doc.page_content for doc in retrieved_docs])
+            formatted_docs = []
+            sources = []
+            
+            for i, doc in enumerate(retrieved_docs):
+                # Extract metadata - assuming metadata contains page info
+                metadata = doc.metadata
+                page_info = metadata.get('page', f'Document {i+1}')
+                
+                # Format the document with page info
+                formatted_text = f"[Page {page_info}]: {doc.page_content}"
+                formatted_docs.append(formatted_text)
+                
+                # Store source information for display
+                source_info = f"Page {page_info}: {doc.page_content}"
+                if metadata.get('source'):
+                    source_info = f"Source: {metadata.get('source')}\n{source_info}"
+                sources.append(source_info)
+                
+            context = "\n\n".join(formatted_docs)
         else:
             context = "No relevant documents found."
+            sources = ["No sources found"]
             
     except Exception as e:
         st.error(f"Error retrieving context: {e}")
         context = "Error retrieving context."
+        sources = ["Error retrieving sources"]
     
     # Build prompt with retrieved context
     full_prompt = f"{system_prompt}\n\nRetrieved Information:\n{context}\n\nUser Question: {user_input}"
@@ -82,6 +115,16 @@ if user_input:
     ai_response = response.choices[0].message.content
     
     # Display AI response
-    st.session_state.chat_history.append({"role": "assistant", "content": ai_response})
+    message_with_sources = {
+        "role": "assistant", 
+        "content": ai_response,
+        "sources": sources
+    }
+    st.session_state.chat_history.append(message_with_sources)
+    
     with st.chat_message("assistant"):
         st.markdown(ai_response)
+        if st.session_state.show_sources:
+            with st.expander("Sources"):
+                for i, source in enumerate(sources):
+                    st.markdown(f"**Source {i+1}:**\n{source}")
