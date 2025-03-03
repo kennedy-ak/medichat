@@ -29,7 +29,7 @@ groq_client = Groq(api_key="gsk_K9qHrnFpXQxvo65585ZsWGdyb3FY7g8jjxYGYwJZOTyhI7nv
 system_prompt = (
     "You are a medical assistant. Answer ONLY using retrieved context. "
     "If no relevant information is found, say 'I don't know'. "
-    "Use 5 sentences each for general answers. "
+    "Use a number sentences each for general answers to provide all the needed information. "
     "For lists, processes, or step-by-step instructions: "
     "1. Clearly number each step or item "
     "2. Keep each point concise and focused on one action or piece of information "
