@@ -409,7 +409,7 @@ system_prompt = (
 # Updated reference materials - now using just one book with a HuggingFace link
 reference_materials = {
     "medical_textbook": {
-        "link": "https://huggingface.co/datasets/kennedy-ak/medichat",
+        "link": "https://huggingface.co/datasets/kennedy-ak/medical_book",
         "display_name": "Medical Reference",
         "description": "Comprehensive medical reference covering general medicine topics."
     }
