@@ -10,3 +10,4 @@ langchain
 langchain-pinecone
 pinecone
 langchain_openai
+python-dotenv
