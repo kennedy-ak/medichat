@@ -5,10 +5,13 @@ import base64
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from groq import Groq
+from dotenv import load_dotenv
+load_dotenv()
 
 # Set API keys (use environment variables in production)
-os.environ["PINECONE_API_KEY"] = "pcsk_5CsWGm_DTETbjaHK7ZP6P2eQaMNL2JdUTKitPSuGC3Ntx3nwJNjcWLGsjwopHmUrV58r5D"
-os.environ["GROQ_API_KEY"] = "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"
+PINECONE_API_KEY= os.getenv("PINECONE_API_KEY")
+GROQ_API_KEY= os.getenv("GROQ_API_KEY")
+
 
 # Load embedding model
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
@@ -23,7 +26,7 @@ docsearch = PineconeVectorStore.from_existing_index(
 retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k": 3})
 
 # Set up the Groq client
-groq_client = Groq(api_key="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")
+groq_client = Groq(api_key=GROQ_API_KEY)
 
 # Define improved system prompt
 system_prompt = (
