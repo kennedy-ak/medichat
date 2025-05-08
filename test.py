@@ -7,6 +7,8 @@ from langchain_pinecone import PineconeVectorStore
 from groq import Groq
 from dotenv import load_dotenv
 load_dotenv()
+import nest_asyncio
+nest_asyncio.apply()
 
 # Set API keys (use environment variables in production)
 PINECONE_API_KEY= os.getenv("PINECONE_API_KEY")
@@ -14,8 +16,13 @@ GROQ_API_KEY= os.getenv("GROQ_API_KEY")
 
 
 # Load embedding model
-embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+# embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
+# Try 
+embeddings = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-MiniLM-L6-v2",
+    model_kwargs={"device": "cpu"}  # Explicitly set device
+)
 # Load existing Pinecone index
 docsearch = PineconeVectorStore.from_existing_index(
     index_name="medibot",
