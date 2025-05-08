@@ -11,3 +11,4 @@ langchain-pinecone
 pinecone
 langchain_openai
 python-dotenv
+nest-asyncio
